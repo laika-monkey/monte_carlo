@@ -1,0 +1,30 @@
+---Each run should take this form
+'single' : 
+  'tau_star'  : 25.,    #_optical depth of cloud
+  'ssa'       : 1.0,    #_single scatter albedo
+  'zenith'    : 135,    #_incoming rad dir from vertical
+  'azimuth'   : 0,      #_azimuthal angle
+  'g'         : .85,    #_-1 to 1, 
+                        # desc hemi scrat dir preference
+  'imgfmt'    : 'png',  #_image format, png/pdf
+  'total'     : 50,     #_total number of photons
+  'group'     : 10,     #_number of photons to pass
+                        # each process
+                        # setting this to 1 and
+                        # drawlive True
+                        # allows individual photons
+                        # to be observed
+  'rho'       : False,  #_either plot paths (False) or
+                        # density (True)
+  'weightmin'  : .1,    #_weight at which to del photon
+  'weight'  : False,    #_do we use weights and split
+                        # photons?
+  
+'drawlive' : True,      #_draw photons moving as it happens
+                        # not recommended unless doing density
+                        # plots or you have an intense amount
+                        # of memory.
+                        #_mostly a sanity check
+'limit_plot' : False,   #_if true, plot area will not grow
+                        # with photon path
+
