@@ -1,9 +1,10 @@
+from tools import dbg
 class Photon(object):
 	tot_gen	= 0
 	tot_fin = 0
 
 	def __init__(self, record=False, zenith=180, azimuth=0, figure=None,
-		axes=None, clouds=None,**kwargs):
+		axes=None, clouds=None, **kwargs):
 		'''
 		basically a home brew numpy.recarray, only order is not muteable
 		this should not be used as a post processing class, otherwise
@@ -28,20 +29,22 @@ class Photon(object):
 		'''
 		from numpy import array, zeros, ones, tile, nan, pi
 		import matplotlib.pyplot as plt
+		from lib.math import kvector_init
+
 		d2r = pi/180
-		dbg((record,zenith,azimuth),5)
+		dbg((record, zenith, azimuth), 5)
 		
 		#_generate object to hold #size photons
 		if not record:		
 			self.tau = 0	#_current distance from top
-			self.k = kvector_init(zenith*d2r,azimuth*d2r).T.A
-													#_current direction
+			self.k = kvector_init(zenith*d2r, azimuth*d2r).T.A
+							#_current direction
 			self.phi = azimuth * d2r	#_most recent phi
 			self.theta = zenith*d2r		#_most recent theta
-			self.history = zeros((3,1))	#_each coord traveled
+			self.history = zeros((3, 1))	#_each coord traveled
 			self.weight = 1			#_ignore
 			self.result = None		#_top, base, or absorbed
-			self.scattered	= 0 		#_# of times scattered
+			self.scattered = 0 		#_# of times scattered
 			self.live = True		#_still able to advance?
 			self.figure = plt.figure(figsize=([16.,4.])) \
 				if figure == None else figure
@@ -53,8 +56,8 @@ class Photon(object):
 		else:
 			#_break up record and put back in
 			cols = record.split()
-			shape = (len(cols[3:])/3,3)	#_nscat, nk
-			history	= array(cols[3:],dtype='f8').reshape(shape)
+			shape = (len(cols[3:])/3, 3)	#_nscat, nk
+			history	= array(cols[3:], dtype='f8').reshape(shape)
 			
 			#_if want to be able to load and continue advancing,
 			# need to add back in calculation for k vect based
@@ -72,7 +75,7 @@ class Photon(object):
 				if axes == None else axes
 			self.line = None
 			
-		photon.tot_gen += 1
+		Photon.tot_gen += 1
 		
 	def advance(self, ssa=1., weight=False, force_angle=None, tau_star=10.,
 		lag=0, **kwargs):
@@ -87,33 +90,34 @@ class Photon(object):
 			Beer-Lambert Law
 		'''
 		from numpy.random import random as r
-		from numpy import append, array, log, tile
+		from numpy import append, array, log, tile, pi
 		from time import sleep
-		import henyey_greenstein
-		dbg((ssa,force_angle,tau_star),3)
+		from lib import henyey_greenstein
+
+		dbg((ssa, force_angle, tau_star), 5)
 			
 		if not self.live:
 			return
 		
 		#_roll to see how far until next interaction____________________
 		self.tau = -log(1-r(1)[0])	#_THIS IS NOT TAAAAUUUUU
-		
+
 		#_update current location
-		point = (self.history[:,-1]+self.tau*self.k).reshape(3,1)
-		self.history = append(self.history,point,axis=1)
+		point = (self.history[:,-1] + self.tau*self.k).reshape(3, 1)
+		self.history = append(self.history, point, axis=1)
 		self.plot(**kwargs)
 		
 		#_check if escaped top or bottom, update flags
 		if self.history[2,-1] < 1e-8:
-			self.die('top',**kwargs)
+			self.die('top', **kwargs)
 			return
 		elif self.history[2,-1] > tau_star:
-			self.die('base',**kwargs)
+			self.die('base', **kwargs)
 			return
 					
 		#_roll to see if absorbed_______________________________________
 		if r(1)[0] > ssa:
-			self.die('absorbed',**kwargs)
+			self.die('absorbed', **kwargs)
 			return
 		
 		#_roll to see in what direction________________________________
@@ -128,7 +132,7 @@ class Photon(object):
 		self.scattered += 1
 				
 		#_update number of times scattered
-		dbg(self.traveled(origin=False),5)
+		dbg(self.traveled(origin=False), 5)
 		
 		#_if we do a weighting check, add it here? above?
 		#_update plot
@@ -136,13 +140,15 @@ class Photon(object):
 			
 	def __turn__(self, theta, phi, **kwargs):
 		''' augment direction of vector by theta,phi '''
-		dbg((theta,phi),5)
+		dbg((theta, phi), 5)
 		from numpy import ones, dot, arange
+		from lib import paxes
+		from lib import kvector
 		
 		#_build 3x3 array describing coordinate system orthogonal to the
 		# propagating ray and with x parallel to the model
 		# horizontal plane
-		aug = paxes(self.k,self.phi)
+		aug = paxes(self.k, self.phi)
 
 		#_get a unit vector describing new coordinate direction
 		kpp = kvector(theta,phi)
@@ -155,7 +161,7 @@ class Photon(object):
 	def die(self, result, **kwargs): #_try to escape
 		self.result = result
 		self.live = False
-		photon.tot_fin += 1
+		Photon.tot_fin += 1
 		self.dump(**kwargs)
 		
 	def dump(self,outdir='.', outdat='photon.dat', fid=None, **kwargs):
@@ -166,7 +172,9 @@ class Photon(object):
 		index,	bool,	location of record to remove
 		'''
 		from numpy import array, where, empty
-		dbg((outdir,outdat),3)
+		from lib import mkdir_p
+
+		dbg((outdir, outdat), 4)
 		mkdir_p(outdir)
 			
 		fopened = True if fid != None else False
@@ -194,7 +202,7 @@ class Photon(object):
 				as the non-scattering photon flies
 		'''
 		from numpy import sqrt
-		dbg(origin,5)
+		dbg(origin, 5)
 			
 		#_total meanderings	
 		if not origin:
@@ -217,6 +225,8 @@ class Photon(object):
 		rho,	bool,		instead of plotting path, plot density
 		'''
 		from numpy import arange, array, tan, cos, pi
+		from lib.tools import mkdir_p
+
 		mkdir_p(outdir)
 		x, y, z = self.history
 		if self.line == None:	#_new line
@@ -239,8 +249,8 @@ class Photon(object):
 			
 			#_update cloud lines
 			if clouds != None:
-				x = [0,clouds.incident_x(cymax)]
-				y = [0,cymax]
+				x = [0, clouds.incident_x(cymax)]
+				y = [0, cymax]
 				clouds.ray.set_xdata(x)
 				clouds.ray.set_ydata(y)
 				clouds.base.set_xdata([cxmin,cxmax])
