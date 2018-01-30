@@ -25,7 +25,7 @@ class Cloud(object):
 
 		#_initialize figure and axes
 		self.figure = figure if figure != None \
-			else plt.figure(figsize=[16., 4.])
+			else plt.figure(figsize=[32., 8.])
 		self.figure.add_subplot(111)
 		
 		#_initialize cloud top and base lines
@@ -33,8 +33,7 @@ class Cloud(object):
 		ylim = [-2, tau_star+2]
 		self.figure.axes[0].set_ylim(ylim[::-1])
 		self.figure.axes[0].set_xlim(xlim)
-		
-		arg = {'linewidth':.5,'color':'k'}
+		arg = {'linewidth':1.5, 'color':'k'}
 		a, = self.figure.axes[0].plot(xlim, [tau_star,tau_star], **arg)
 		b, = self.figure.axes[0].plot(xlim, [0,0], **arg)
 
