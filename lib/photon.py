@@ -1,7 +1,5 @@
 from tools import dbg
 class Photon(object):
-	tot_gen	= 0
-	tot_fin = 0
 
 	def __init__(self, record=False, zenith=180, azimuth=0, figure=None,
 		axes=None, clouds=None, **kwargs):
@@ -33,7 +31,7 @@ class Photon(object):
 
 		d2r = pi/180
 		dbg((record, zenith, azimuth), 5)
-		
+
 		#_generate object to hold #size photons
 		if not record:		
 			self.tau = 0	#_current distance from top
@@ -51,6 +49,9 @@ class Photon(object):
 			self.axes = self.figure.add_subplot(111) \
 				if axes==None else axes
 			self.line = None
+
+			#_associate photon with particular cloud
+			self.cloud = clouds
 
 		#_when passed a file name, returns previously run photon results
 		else:
@@ -74,8 +75,8 @@ class Photon(object):
 			self.axes = self.figure.add_subplot(111) \
 				if axes == None else axes
 			self.line = None
-			
-		Photon.tot_gen += 1
+		
+		self.cloud.tot_gen += 1	
 		
 	def advance(self, ssa=1., weight=False, force_angle=None, tau_star=10.,
 		lag=0, **kwargs):
@@ -161,7 +162,7 @@ class Photon(object):
 	def die(self, result, **kwargs): #_try to escape
 		self.result = result
 		self.live = False
-		Photon.tot_fin += 1
+		self.cloud.tot_fin += 1
 		self.dump(**kwargs)
 		
 	def dump(self,outdir='.', outdat='photon.dat', fid=None, **kwargs):

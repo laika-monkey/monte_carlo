@@ -18,6 +18,10 @@ class Cloud(object):
 		self.azimuth = azimuth
 ##		self.ssa = ssa
 ##		self.g = g
+		
+		#_tracking photon data
+		self.tot_gen = 0
+		self.tot_fin = 0
 
 		#_initialize figure and axes
 		self.figure = figure if figure != None \

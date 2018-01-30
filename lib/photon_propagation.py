@@ -9,13 +9,13 @@ def photon_propagation(total=100, group=10, drawlive=False, **kwargs):
 	from photon import Photon as photon
 	
 	photons = array([]) #_initialize list to carry photon objects
-	figure	= kwargs.get('figure') #_get a copy to speed up drawing
-	clouds	= kwargs.get('clouds') #_get a copy of clouds
+	figure = kwargs.get('figure') #_get a copy to speed up drawing
+	cloud = kwargs.get('clouds') #_get a copy of clouds
 	
-	while photon.tot_fin < total:
+	while cloud.tot_fin < total:
 
 		#_keep the total number of photons in list.photons == group
-		currently_generated = total - photon.tot_fin - len(photons)
+		currently_generated = total - cloud.tot_fin - len(photons)
 		currently_active = group - len(photons)
 		need = min([currently_generated, currently_active])
 
@@ -31,7 +31,7 @@ def photon_propagation(total=100, group=10, drawlive=False, **kwargs):
 		photons = photons[live]	#_reduce array to living
 
 		if drawlive:
-			args = (photon.tot_fin, photon.tot_gen)
+			args = (cloud.tot_fin, cloud.tot_gen)
 			title = '{} complete of {} generated'.format(*args) 
-			clouds.figure.axes[0].set_title(title)
-			clouds.figure.canvas.draw()
+			cloud.figure.axes[0].set_title(title)
+			cloud.figure.canvas.draw()

@@ -12,48 +12,13 @@
 #		sets of photons should be computed using monte_carlo.py instead.
 #############################################################################_80
 
-namelist = {
-  'single'	: {
-		'tau_star'	: 25.,		#_optical depth of cloud
-		'ssa'		: 1.0,		#_single scatter albedo
-		'zenith'	: 135,		#_incoming rad dir from vertical
-		'azimuth'	: 0,		#_azimuthal angle
-		'g'		: .85,		#_-1 to 1, 
-						# desc hemi scrat dir preference
-		'imgfmt'	: 'png',	#_image format, png/pdf
-		'total'		: 10,		#_total number of photons
-		'group'		: 2,		#_number of photons to pass
-						# each process
-						# setting this to 1 and
-						# drawlive True
-						# allows individual photons
-						# to be observed
-		'rho'		: False,	#_either plot paths (False) or
-						# density (True)
-		'weightmin'	: .1,		#_weight at which to del photon
-		'weight'	: False,	#_do we use weights and split
-						# photons?
-  	},
-	
-	'drawlive' : True,	#_draw photons moving as it happens
-				# not recommended unless doing density
-				# plots or you have an intense amount
-				# of memory.
-				#_mostly a sanity check
-	'limit_plot' : False,	#_if true, plot area will not grow
-				# with photon path
-	}
-
-#############################################################################_80
-#_MAIN_######################################################################_80
-#############################################################################_80
-
 def run_main(drawlive=False, limit_plot=True, **namelist): 
 	import os
 	import matplotlib.pyplot as plt
 	from lib import photon_propagation
 	from lib import mkdir_p
 	from lib import Cloud as cloud
+	from time import sleep
 	
 	#_loop over runs specified in the Namelist dictionary
 	for run in namelist:
@@ -63,13 +28,15 @@ def run_main(drawlive=False, limit_plot=True, **namelist):
 			plt.ion()
 		
 		#_initialize output file
-		mkdir_p(run)
-		fname = os.path.join(run, 'photon.dat')
+		outdir = 'output_{}'.format(run)
+		mkdir_p(outdir)
+		fname = os.path.join(outdir, 'photon.dat')
+		print 'Writing photon data to {}'.format(fname)
 		
 		#_pull out keyword args and update	
 		kwargs = namelist[run]
-		clouds = cloud(**kwargs)		#_initialize cloud
-		kwargs.update({	'outdir'	: run,
+		clouds = cloud(**kwargs)	#_initialize cloud
+		kwargs.update({	'outdir'	: outdir,
 				'figure' 	: clouds.figure,
 				'fid'		: open(fname, 'w'),
 				'axes'		: clouds.figure.axes[0],
@@ -80,8 +47,14 @@ def run_main(drawlive=False, limit_plot=True, **namelist):
 		#_calc how many loops need to be made
 		photon_propagation(**kwargs)
 
-	#_same image 	
-	plt.savefig(os.path.join(run, 'photon.png'))
+		#_same image 
+		pname = os.path.join(outdir, 'photon.png')
+		plt.savefig(pname)
+		print 'Saving path image to {}'.format(pname)	
+
+		sleep(10)
 	
 if __name__ == '__main__':
+	import yaml
+	namelist = yaml.load(open('options.yaml', 'r'))
 	run_main(**namelist)
